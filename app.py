@@ -57,48 +57,112 @@ def main():
     # Process data button
     if st.sidebar.button("Generate Report"):
         with st.spinner("Processing attendance data..."):
-            # Process the data
-            attendance_data = process_attendance_data(
-                base_dir=Path(__file__).parent / "attendance",
-                report_type=report_type
-            )
-            
-            if attendance_data is None:
-                st.error("No attendance data found!")
-                return
-            
-            # Store the data in session state
-            st.session_state.report_data = attendance_data
-            st.session_state.report_type = report_type
-            
-            # Display the data
-            st.subheader("Attendance Summary")
-            st.dataframe(attendance_data)
-            
-            # Export options
-            if export_ipynb or export_excel or export_md:
-                st.subheader("Export Options")
+            if report_type == "Both":
+                # Generate both reports
+                all_attendees_data = process_attendance_data(
+                    base_dir=Path(__file__).parent / "attendance",
+                    report_type="All Attendees"
+                )
+                officers_data = process_attendance_data(
+                    base_dir=Path(__file__).parent / "attendance",
+                    report_type="Officers Only"
+                )
                 
-                # Create export directory if it doesn't exist
-                export_dir = Path("exports")
-                export_dir.mkdir(exist_ok=True)
+                if all_attendees_data is None or officers_data is None:
+                    st.error("No attendance data found!")
+                    return
                 
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # Store the data in session state
+                st.session_state.report_data = {
+                    "All Attendees": all_attendees_data,
+                    "Officers Only": officers_data
+                }
+                st.session_state.report_type = report_type
                 
-                if export_ipynb:
-                    notebook_path = export_dir / f"attendance_report_{timestamp}.ipynb"
-                    # TODO: Add notebook export functionality
-                    st.success(f"Notebook saved to: {notebook_path}")
+                # Display both reports
+                col1, col2 = st.columns(2)
                 
-                if export_excel:
-                    excel_path = export_dir / f"attendance_report_{timestamp}.xlsx"
-                    attendance_data.to_excel(excel_path)
-                    st.success(f"Excel file saved to: {excel_path}")
+                with col1:
+                    st.subheader("All Attendees Summary")
+                    st.dataframe(all_attendees_data)
                 
-                if export_md:
-                    md_path = export_dir / f"attendance_report_{timestamp}.md"
-                    attendance_data.to_markdown(md_path)
-                    st.success(f"Markdown file saved to: {md_path}")
+                with col2:
+                    st.subheader("Officers Only Summary")
+                    st.dataframe(officers_data)
+                
+                # Export options
+                if export_ipynb or export_excel or export_md:
+                    st.subheader("Export Options")
+                    
+                    # Create export directory if it doesn't exist
+                    export_dir = Path("exports")
+                    export_dir.mkdir(exist_ok=True)
+                    
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    
+                    if export_ipynb:
+                        notebook_path = export_dir / f"attendance_report_{timestamp}.ipynb"
+                        # TODO: Add notebook export functionality
+                        st.success(f"Notebook saved to: {notebook_path}")
+                    
+                    if export_excel:
+                        excel_path = export_dir / f"attendance_report_{timestamp}.xlsx"
+                        with pd.ExcelWriter(excel_path) as writer:
+                            all_attendees_data.to_excel(writer, sheet_name="All Attendees")
+                            officers_data.to_excel(writer, sheet_name="Officers Only")
+                        st.success(f"Excel file saved to: {excel_path}")
+                    
+                    if export_md:
+                        md_path = export_dir / f"attendance_report_{timestamp}.md"
+                        with open(md_path, 'w') as f:
+                            f.write("# All Attendees Summary\n\n")
+                            f.write(all_attendees_data.to_markdown())
+                            f.write("\n\n# Officers Only Summary\n\n")
+                            f.write(officers_data.to_markdown())
+                        st.success(f"Markdown file saved to: {md_path}")
+            else:
+                # Process single report
+                attendance_data = process_attendance_data(
+                    base_dir=Path(__file__).parent / "attendance",
+                    report_type=report_type
+                )
+                
+                if attendance_data is None:
+                    st.error("No attendance data found!")
+                    return
+                
+                # Store the data in session state
+                st.session_state.report_data = attendance_data
+                st.session_state.report_type = report_type
+                
+                # Display the data
+                st.subheader("Attendance Summary")
+                st.dataframe(attendance_data)
+                
+                # Export options
+                if export_ipynb or export_excel or export_md:
+                    st.subheader("Export Options")
+                    
+                    # Create export directory if it doesn't exist
+                    export_dir = Path("exports")
+                    export_dir.mkdir(exist_ok=True)
+                    
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    
+                    if export_ipynb:
+                        notebook_path = export_dir / f"attendance_report_{timestamp}.ipynb"
+                        # TODO: Add notebook export functionality
+                        st.success(f"Notebook saved to: {notebook_path}")
+                    
+                    if export_excel:
+                        excel_path = export_dir / f"attendance_report_{timestamp}.xlsx"
+                        attendance_data.to_excel(excel_path)
+                        st.success(f"Excel file saved to: {excel_path}")
+                    
+                    if export_md:
+                        md_path = export_dir / f"attendance_report_{timestamp}.md"
+                        attendance_data.to_markdown(md_path)
+                        st.success(f"Markdown file saved to: {md_path}")
 
 if __name__ == "__main__":
     main() 
