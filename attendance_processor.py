@@ -105,6 +105,9 @@ def process_attendance_data(base_dir: Path, report_type: str) -> Optional[pd.Dat
     # Add total row (unique members per month)
     if report_type == "Officers Only":
         # For officers, only count officers in the total
+        # First, filter the DataFrame to only include officers
+        df = df[df.index.isin(officers)]
+        # Then calculate the total members row
         df.loc['Total Members'] = df.apply(lambda x: (x > 0).sum())
     else:
         # For all attendees, count all members
