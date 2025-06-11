@@ -29,6 +29,16 @@ def main():
     if 'report_type' not in st.session_state:
         st.session_state.report_type = None
     
+    # If we have a report, show the "Generate New Report" button at the top
+    if st.session_state.report_data is not None:
+        if st.button("🔄 Generate New Report", type="primary"):
+            # Clear the session state
+            st.session_state.report_data = None
+            st.session_state.report_type = None
+            # Rerun the app to show the fresh interface
+            st.rerun()
+        st.divider()
+    
     # Sidebar for options
     st.sidebar.header("Options")
     
@@ -89,16 +99,6 @@ def main():
                     md_path = export_dir / f"attendance_report_{timestamp}.md"
                     attendance_data.to_markdown(md_path)
                     st.success(f"Markdown file saved to: {md_path}")
-    
-    # If we have a report, show the "Generate New Report" button
-    if st.session_state.report_data is not None:
-        st.divider()
-        if st.button("Generate New Report"):
-            # Clear the session state
-            st.session_state.report_data = None
-            st.session_state.report_type = None
-            # Rerun the app to show the fresh interface
-            st.rerun()
 
 if __name__ == "__main__":
     main() 
