@@ -23,6 +23,12 @@ def main():
     st.title("📊 Attendance Tracker")
     st.write("Process attendance data from Jupyter notebooks")
     
+    # Initialize session state for report data if it doesn't exist
+    if 'report_data' not in st.session_state:
+        st.session_state.report_data = None
+    if 'report_type' not in st.session_state:
+        st.session_state.report_type = None
+    
     # Sidebar for options
     st.sidebar.header("Options")
     
@@ -50,6 +56,10 @@ def main():
             if attendance_data is None:
                 st.error("No attendance data found!")
                 return
+            
+            # Store the data in session state
+            st.session_state.report_data = attendance_data
+            st.session_state.report_type = report_type
             
             # Display the data
             st.subheader("Attendance Summary")
@@ -79,6 +89,16 @@ def main():
                     md_path = export_dir / f"attendance_report_{timestamp}.md"
                     attendance_data.to_markdown(md_path)
                     st.success(f"Markdown file saved to: {md_path}")
+    
+    # If we have a report, show the "Generate New Report" button
+    if st.session_state.report_data is not None:
+        st.divider()
+        if st.button("Generate New Report"):
+            # Clear the session state
+            st.session_state.report_data = None
+            st.session_state.report_type = None
+            # Rerun the app to show the fresh interface
+            st.rerun()
 
 if __name__ == "__main__":
     main() 
