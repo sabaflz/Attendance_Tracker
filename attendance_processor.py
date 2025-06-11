@@ -25,7 +25,7 @@ def extract_members_from_cell(cell_text: str) -> List[str]:
     members = []
 
     for line in lines:
-        if "members:" in line.lower():
+        if "members:" in line.lower():  # Case-insensitive check
             members_section = True
             continue
         if members_section:
@@ -102,19 +102,32 @@ def process_attendance_data(base_dir: Path, report_type: str) -> Optional[pd.Dat
     # Add total column
     df['Total'] = df.sum(axis=1)
     
-    # Add total row (unique members per month)
+    # Add total row (unique members per month) at the top
     if report_type == "Officers Only":
         # For officers, only count officers in the total
         # First, filter the DataFrame to only include officers
         df = df[df.index.isin(officers)]
         # Then calculate the total members row
-        df.loc['Total Members'] = df.apply(lambda x: (x > 0).sum())
+        total_members = df.apply(lambda x: (x > 0).sum())
+        # Create a new DataFrame with Total Members at the top
+        df = pd.concat([
+            pd.DataFrame([total_members], index=['Total Members']),
+            df
+        ])
     else:
         # For all attendees, count all members
-        df.loc['Total Members'] = df.apply(lambda x: (x > 0).sum())
+        total_members = df.apply(lambda x: (x > 0).sum())
+        # Create a new DataFrame with Total Members at the top
+        df = pd.concat([
+            pd.DataFrame([total_members], index=['Total Members']),
+            df
+        ])
     
-    # Sort by total attendance
-    df = df.sort_values('Total', ascending=False)
+    # Sort by total attendance (excluding Total Members row)
+    df = pd.concat([
+        df.iloc[:1],  # Keep Total Members at top
+        df.iloc[1:].sort_values('Total', ascending=False)  # Sort the rest
+    ])
     
     return df
 
