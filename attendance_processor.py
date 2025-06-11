@@ -124,10 +124,15 @@ def process_attendance_data(base_dir: Path, report_type: str) -> Optional[pd.Dat
         ])
     
     # Sort by total attendance (excluding Total Members row)
-    df = pd.concat([
-        df.iloc[:1],  # Keep Total Members at top
-        df.iloc[1:].sort_values('Total', ascending=False)  # Sort the rest
-    ])
+    # First by Total (descending), then by name (ascending)
+    total_members_row = df.iloc[:1]  # Keep Total Members at top
+    rest_of_df = df.iloc[1:].copy()  # Get the rest of the data
+    rest_of_df['Name'] = rest_of_df.index  # Add name column for sorting
+    rest_of_df = rest_of_df.sort_values(['Total', 'Name'], ascending=[False, True])  # Sort by total then name
+    rest_of_df = rest_of_df.drop('Name', axis=1)  # Remove the temporary name column
+    
+    # Combine the rows back together
+    df = pd.concat([total_members_row, rest_of_df])
     
     return df
 
