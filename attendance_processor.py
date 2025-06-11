@@ -103,7 +103,7 @@ def process_attendance_data(base_dir: Path, report_type: str) -> Optional[pd.Dat
     df['Total'] = df.sum(axis=1)
     
     # Add total row (unique members per month)
-    df.loc['Total Unique Members'] = df.apply(lambda x: (x > 0).sum())
+    df.loc['Total Members'] = df.apply(lambda x: (x > 0).sum())
     
     # Sort by total attendance
     df = df.sort_values('Total', ascending=False)
